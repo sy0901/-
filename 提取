@@ -1,0 +1,82 @@
+import xlrd
+#题目删除 空格 下滑_ 回车\n （ ） ( )
+
+#答案删除 空格 回车
+def 题库提取() :
+    while True:
+        try:
+            #path='2_废酸岗位设备规程应知应会考试试题.xlsx'
+            path = input('输入文件名(当前路径或绝对路径均可):')
+            file = xlrd.open_workbook(path)
+            names = file.sheet_names()
+            table = file.sheets()[0]
+            print('读取列表:'+str(names))
+            #读取文件,并输出工作表来表示读取成功
+            break
+        except FileNotFoundError:
+            print('未找到文件')
+
+
+
+    try:
+        定位=table.row_values(0, start_colx=0, end_colx=None)
+        print(定位)
+        题目标题=定位.index('题目标题')
+        题目答案=定位.index('题目答案')
+        A=定位.index('选项A')
+        B=定位.index('选项B')
+        C=定位.index('选项C')
+        D=定位.index('选项D')
+        E=定位.index('选项E')
+        F=定位.index('选项F')
+        G=定位.index('选项G')
+        print('标题定位成功'+'\n')
+    except:
+        print('标题定位错误,可能影响使用')
+
+    提取={}
+    nrows = table.nrows#获取有效行数
+
+    for n in range(1,nrows):
+        行 = table.row_values(n, start_colx=0, end_colx=None)#获取整行数据
+
+        if 行[0] in '单选题 判断题':
+            题目,答案=str(行[题目标题]).replace(' ','').replace('_','').replace('\n','').replace('\xa0','')\
+                ,str(行[题目答案]).replace('\n','').replace('|', '&').replace(' ','')
+            答案=str(行[eval(答案)]).replace('\n','')#将abcd转成文字答案
+            print(答案)
+            提取[题目]=答案
+
+
+        elif 行[0] in '多选题':
+            题目,答案=str(行[题目标题]).replace(' ','').replace('_','').replace('\n','').replace('\xa0','')\
+                ,str(行[题目答案]).replace('\n','').replace('|', '&').replace(' ','')
+            多选答案集合=[]
+            print(n,题目,答案)
+            for d in 答案:
+                答案=str(行[eval(d)]).replace('\n','')
+                多选答案集合.append(答案)
+            提取[题目]='&'.join(多选答案集合)
+
+
+
+
+        elif 行[0] in '填空题 问答题' :
+            题目,答案=str(行[题目标题]).replace(' ','').replace('_','').replace('\n','').replace('\xa0','')\
+                ,str(行[题目答案]).replace('\n','').replace('|', '&')
+            提取[题目] = 答案
+
+
+    for a,b in 提取.items():
+        if b[-2:] == '.0':
+            b = b.replace('.0', '')
+            提取[a] = b
+
+    print(提取)
+    with open('提取.txt','w',encoding='utf-8') as f:
+        for j in 提取:
+            f.write('{}|{}\n'.format(j,提取[j]))
+
+
+while True:
+    题库提取()
